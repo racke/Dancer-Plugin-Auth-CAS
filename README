@@ -1,0 +1,128 @@
+NAME
+    Dancer::Plugin::Auth::CAS - CAS sso authentication for Dancer
+
+VERSION
+    Version 0.02
+
+SYNOPSIS
+    Dancer::Plugin::Auth::CAS provides CAS single-sign-on authentication
+
+    Add the plugin to your application:
+
+        use Dancer::Plugin::Auth::CAS;
+
+    Configure the plugin in your config:
+
+      plugins:
+        "Auth::CAS":
+            cas_url: "https://your.org/sso"
+            cas_version: "2.0"
+            cas_user_map: "user"
+            cas_attr_map:
+                email: "email"
+                username: "username"
+                firstName: "firstname"
+                lastName: "lastname"
+
+    Call the "auth_cas" function in a before filter:
+
+        before sub {
+            # fetches the ticket via URL 'ticket' parameter
+            auth_cas; 
+
+            # or if you want to fetch the ticket yourself:
+            auth_cas( ticket => $cas_ticket_id ); 
+        };
+
+    or in a route handler:
+
+        get '/confidential' => sub {
+            auth_cas;
+            # Authenticated
+            ...
+        };
+
+DESCRIPTION
+    Cancer::Plugin::Auth::CAS provides single-sign-on (sso) authentication
+    via JASIGs Central Authentication Service (CAS). See
+    <http://www.jasig.org/cas>
+
+CONFIGURATION
+    The available configuration options are listed below.
+
+  cas_url
+    The URL of your CAS server
+
+  cas_version
+    The version of your CAS server, usually '2.0' or '1.0'
+
+  cas_user_map
+    This lets you choose under what name the CAS user details will be stored
+    in your session. Defaults to: 'cas_user' All user attributes delivered
+    by the CAS-Server will be stored as a HashRef under the session key of
+    "cas_user_map". Defaults to: 'cas_user'
+
+  cas_attr_map
+    This lets you map CAS user attributes towards your own attribute names.
+
+    Example:
+
+        cas_attr_map:
+            email: "user_email"
+            username: "username"
+            firstName: "first_name"
+            lastName: "last_name"
+
+    This will map the CAS user attribute "email" to "user_email" aso..
+
+FUNCTIONS
+  auth_cas ( %args )
+    This function may be called in a before filter or at the beginning of a
+    route handler. It checks if the client is authorized to access the
+    requested path -- if not, redirects the client towards the CAS-server
+    SSO login URL.
+
+    If the login succeeds, the CAS-Server will redirect the client towards
+    the first requested path including a 'ticket' as URL parameter. This
+    triggers the "auth_cas" a second time, where it validates the 'ticket'
+    against the CAS-Server.
+
+    Once the ticket validation has been done, the server includes user
+    attributes in its reponse to the Dancer application. These user
+    attributes are stored as a HashRef in a "session" key (see
+    "cas_user_map"). These attributes can be renamed/mapped towards your own
+    keys with the "cas_attr_map" option.
+
+    Parameters:
+
+    *   "ticket" (optional)
+
+        If you want to extract the CAS ticket yourself, then you can forward
+        it explicitly with this parameter.
+
+AUTHOR
+    Jean Stebens, "<cpan.helba at recursor.net>"
+
+BUGS
+    Please report any bugs or feature requests at
+    <https://github.com/corecache/Dancer-Plugin-Auth-CAS>. I will be
+    notified, and then you'll automatically be notified of progress on your
+    bug as I make changes.
+
+SUPPORT
+    You can find documentation for this module with the perldoc command.
+
+        perldoc Dancer::Plugin::Auth::CAS
+
+    You can also look for information at:
+    <https://github.com/corecache/Dancer-Plugin-Auth-CAS>
+
+LICENSE AND COPYRIGHT
+    Copyright 2013-2014 Jean Stebens.
+
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of either: the GNU General Public License as published
+    by the Free Software Foundation; or the Artistic License.
+
+    See http://dev.perl.org/licenses/ for more information.
+
